@@ -2,33 +2,45 @@
 // https://www.ttmath.org/online_calculator
 #include <iostream>
 #include <vector>
+#include "ttmath/ttmath.h"
 
-int calculate_e_section(long int section); // Calculates a section of e. The algorithm can be extended on forever therefore 
+#define SIM_ITER_COUNT 10
 
-struct e_value {
-	int integer_part;
-	std::vector<int> invert_factorial_parts;
-};
-
-
-
-
+int calculate_e_section(long int section); // Calculates a section of e. The algorithm can be extended on forever.
 
 int main()
 {
 	printf("Hello, World!\n");
-	printf("Awaiting command to calculate digits.\n");
+	//printf("Awaiting command to calculate digits.\n");
 
-	e_value e;
-	e.integer_part = 1;
+	ttmath::Big<512, 32> e;
 
-	for (int sec = 0; sec < 100; sec++) {
-		 e.invert_factorial_parts.push_back(calculate_e_section(sec));
+	typedef ttmath::Big<512, 32> Working_big;
+	ttmath::Parser<Working_big> parser;
+
+	ttmath::Conv conv;
+	conv.round = 15;
+
+	
+
+	for (int i = 0; i < SIM_ITER_COUNT; i++) {
+		//e = e + ttmath::Big<10, 10>();
+		ttmath::ErrorCode err = parser.Parse(" 1 / factorial( " + std::to_string(i) + " ) ");
+
+		if (err == ttmath::err_ok) {
+			printf(parser.stack[0].value.ToString(conv).c_str());
+			printf("\n");
+			e = e.Add(parser.stack[0].value);
+		}
+		else {
+			printf("Error: %i.\n", static_cast<int>(err));
+		}
 	}
 	
 
-
-	printf("Calculated: %f.\n", e);
+	printf("Calculated: ");
+	printf(e.ToString(conv).c_str());
+	printf("\n");
 	printf("Done!");
 }
 
